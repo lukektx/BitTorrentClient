@@ -37,7 +37,6 @@ class BEncode:
 if __name__ == '__main__':
 
     test = BEncode()
-    test_input = {"publisher": "bob",
-                  "publisher-webpage": "www.example.com", "publisher.location": "home"}
-    print(type(test_input))
+    test_input = {'': [[{}]]}
+
     print(test.encode(test_input))
