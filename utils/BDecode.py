@@ -1,28 +1,35 @@
 class BDecode:
+
+    def __init__(self):
+        self.int_match = ord('i')
+        self.list_match = ord('l')
+        self.dict_match = ord('d')
+        self.end_match = ord('e')
+        self.delimeter_match = ord(':')
+
     def decode(self, encoded, current_index=[0]):
 
         while current_index[0] < len(encoded):
             current_token = encoded[current_index[0]]
             match current_token:
-                case 'i':
+                case self.int_match:
                     start_index = current_index[0] + 1
-                    end_index = encoded.find('e', start_index)
+                    end_index = encoded.find(b'e', start_index)
                     current_index[0] = end_index + 1
                     return int(encoded[start_index: end_index])
 
-                case 'l':
+                case self.list_match:
                     out = []
                     current_index[0] += 1
-                    while (encoded[current_index[0]] != 'e'):
+                    while (encoded[current_index[0]] != self.end_match):
                         out.append(self.decode(encoded, current_index))
                     current_index[0] += 1
                     return out
 
-                case 'd':
+                case self.dict_match:
                     out = {}
                     current_index[0] += 1
-
-                    while (encoded[current_index[0]] != 'e'):
+                    while (encoded[current_index[0]] != self.end_match):
                         key = self.decode(encoded, current_index)
                         value = self.decode(encoded, current_index)
                         out[key] = value
@@ -31,10 +38,11 @@ class BDecode:
                 
                 case _:
                     start_index = current_index[0]
-                    current_index[0] = encoded.find(':', start_index)
+                    current_index[0] = encoded.find(self.delimeter_match, start_index)
                     length = int(encoded[start_index: current_index[0]])
                     start_index = current_index[0] + 1
                     current_index[0] = start_index + length
+                    
                     return encoded[start_index: current_index[0]]
 
 
