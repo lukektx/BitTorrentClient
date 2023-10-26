@@ -36,7 +36,6 @@ class Torrent:
         url += f'compact=1'
         return url
     
-
 with open('torrents//ubuntu-23.10.1-desktop-amd64.iso.torrent', 'rb') as f:
     test = Torrent(f, 6889)
     url = test.get_tracker_request()
