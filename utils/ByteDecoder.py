@@ -1,9 +1,10 @@
-class Metadata:
+class ByteDecoder:
 
     def __init__(self):
         self.type_mapping = {
             bytes: self.bytes_decode,
             int: self.int_decode,
+            str: self.int_decode,
             list: self.list_decode,
             dict: self.dict_decode
         }

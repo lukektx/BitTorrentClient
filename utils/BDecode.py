@@ -1,6 +1,9 @@
+from . import ByteDecoder
+
 class BDecode:
 
     def __init__(self):
+        self.byte_decoder = ByteDecoder.ByteDecoder()
         self.int_match = ord('i')
         self.list_match = ord('l')
         self.dict_match = ord('d')
@@ -24,7 +27,7 @@ class BDecode:
                     while (encoded[current_index[0]] != self.end_match):
                         out.append(self.decode(encoded, current_index))
                     current_index[0] += 1
-                    return out
+                    return self.byte_decoder.bytes_to_str(out)
 
                 case self.dict_match:
                     out = {}
@@ -34,7 +37,7 @@ class BDecode:
                         value = self.decode(encoded, current_index)
                         out[key] = value
                     current_index[0] += 1
-                    return out
+                    return self.byte_decoder.bytes_to_str(out)
                 
                 case _:
                     start_index = current_index[0]

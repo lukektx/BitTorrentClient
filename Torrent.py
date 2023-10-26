@@ -1,7 +1,8 @@
 import utils.BEncode as Encoder
 import utils.BDecode as Decoder
 from urllib.parse import quote
-from utils import Metadata
+from utils import ByteDecoder
+import TrackerResponse
 import hashlib
 import random
 import requests
@@ -15,8 +16,7 @@ class Torrent:
         self.port = port
 
     def get_metadata(self):
-        bytes_metadata = self.decoder.decode(self.torrent_file.read())
-        self.metadata = Metadata.Metadata().bytes_to_str(bytes_metadata)
+        self.metadata = self.decoder.decode(self.torrent_file.read())
 
     def info_hash(self):
         return quote(hashlib.sha1(self.encoder.encode(self.metadata['info'])).digest(), safe='')
@@ -40,8 +40,10 @@ with open('torrents//ubuntu-23.10.1-desktop-amd64.iso.torrent', 'rb') as f:
     test = Torrent(f, 6889)
     url = test.get_tracker_request()
     print(url)
-    response = requests.get(url)
-    content = response.content
-    test_decode = Decoder.BDecode()
-    print(response, test_decode.decode(content, current_index=[0]))
-    #print(quote(test.info_hash().digest(), safe=''))
+    print(test.metadata)
+
+    # response = requests.get(url)
+    # content = response.content
+    
+    # test_resp = TrackerResponse.TrackerResponse(content)
+    # print(test_resp.get_peers())
