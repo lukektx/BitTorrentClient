@@ -3,7 +3,7 @@ import utils.BDecode as Decoder
 from urllib.parse import quote
 from utils import ByteDecoder
 from utils import messages
-from utils import PieceTracker
+import PieceTracker
 import TrackerResponse
 import hashlib
 import random
