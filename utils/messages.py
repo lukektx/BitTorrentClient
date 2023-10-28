@@ -43,4 +43,4 @@ def cancel(index, offset, length):
     return message(8, payload)
 
 def port(port):
-    return message(7, port.to_bytes(2, 'big'))
+    return message(9, port.to_bytes(2, 'big'))

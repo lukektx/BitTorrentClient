@@ -3,7 +3,7 @@ import utils.BDecode as Decoder
 from urllib.parse import quote
 from utils import ByteDecoder
 from utils import messages
-import PieceTracker
+import piece_tracker
 import TrackerResponse
 import hashlib
 import random
@@ -17,9 +17,9 @@ class Torrent:
         self.torrent_file = torrent_file
         self.metadata = self.decoder.decode(self.torrent_file.read())
         print(self.metadata)
-        self.pieces = PieceTracker.PieceTracker(self.metadata[''])
+        self.pieces = piece_tracker.PieceTracker(self.metadata[''])
         self.port = port
-        self.block_size = 16384
+        self.block_size = 2 ** 14 #16kb (standard request size)
 
     def info_hash(self):
         return quote(hashlib.sha1(self.encoder.encode(self.metadata['info'])).digest(), safe='')
@@ -37,6 +37,12 @@ class Torrent:
         url += f'left={self.metadata['info']['length']}&'
         url += f'compact=1'
         return url
+    
+    def get_block(self, index, begin, length):
+        return self.pieces.get_piece(index, begin, length)
+        
+    def add_block(self, index, begin, block):
+        return self.pieces.set_piece()
     
 if __name__ == '__main__':
     with open('torrents//ubuntu-23.10.1-desktop-amd64.iso.torrent', 'rb') as f:
