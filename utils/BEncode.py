@@ -4,7 +4,7 @@ class BEncode:
             int: self.int_encode,
             str: self.str_encode,
             list: self.list_encode,
-            dict: self.dict_encode
+            dict: self.dict_encode,
         }
 
     @staticmethod

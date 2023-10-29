@@ -2,15 +2,31 @@ from tcp import connections
 from utils import message_handler
 from utils import messages
 import peer_status
-import piece_tracker
 
 class Peer:
 
     def __init__(self, torrent, connection, ip, port):
-        self.connecion = connections.PeerConnection(connection, ip, port)
+        if connection:
+            self.connection = connections.PeerConnection(connection, ip, port)
+        else:
+            self.connection = connections.PeerDownload(ip, port)
+            self.connection.socket_connect()
+
         self.status = peer_status.PeerStatus()
         self.handler = message_handler.MessageHandler(self)
+        self.torrent = torrent
         self.bitfield = b''
+
+    # TODO check if peer times out
+
+    def download_piece(self, index, offset, length):
+        # TODO handshake if needed, send interested, get unchoked, then request
+        data = b''
+        self.torrent.add_piece(index, offset, data)
+
+    def handle_message(self):
+        message = self.connection.recieve_message()
+        self.handler.handle_message(message)
 
     def update_time(self):
         self.status.update_time()
@@ -32,6 +48,9 @@ class Peer:
 
     def set_bitfield(self, bitfield):
         self.bitfield = bitfield
+
+    def get_bitfield(self):
+        return self.bitfield
 
     def send_block(self, index, begin, length):
         block = self.torrent.get_block(index, begin, length)

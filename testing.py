@@ -47,13 +47,13 @@ def str_tests():
 
 if __name__ == '__main__':
 
-    test_decode = Decoder.BDecode()
-    test_encode = Encoder.BEncode()
-    with open('torrents//ubuntu-16.04-desktop-amd64.iso.torrent', 'rb') as f:
-        meta_info = f.read()
-        # print(meta_info[0])
-        # print(type(meta_info))
-        decoded = test_decode.decode(meta_info)
-        print(decoded)
-        encoded = test_encode.encode(decoded)
-        
+    # test_decode = Decoder.BDecode()
+    # test_encode = Encoder.BEncode()
+    # with open('torrents//ubuntu-16.04-desktop-amd64.iso.torrent', 'rb') as f:
+    #     meta_info = f.read()
+    #     # print(meta_info[0])
+    #     # print(type(meta_info))
+    #     decoded = test_decode.decode(meta_info)
+    #     print(decoded)
+    #     encoded = test_encode.encode(decoded)
+    pass

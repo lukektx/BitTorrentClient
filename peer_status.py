@@ -3,9 +3,14 @@ from datetime import datetime
 class PeerStatus:
     
     def __init__(self):
+        self.handshake_status = False
         self.choke_status = True
+        self.connection_status = True
         self.interested_status = False
         self.last_message = datetime.now()
+
+    def set_handshake_status(self, status):
+        self.handshake_status = status
 
     def choke(self):
         self.choke_status = True
@@ -30,3 +35,6 @@ class PeerStatus:
     
     def get_time(self):
         return self.last_message
+    
+    def get_handshake_status(self):
+        return self.handshake_status

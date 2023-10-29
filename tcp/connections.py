@@ -1,6 +1,11 @@
 import socket
 import sys
 
+from utils import message_decoder
+
+LENGTH_BYTES = 4
+ID_BYTES = 1
+
 class OwnConnection:
 
     def __init__(self, max_connections, ip, port):
@@ -31,14 +36,6 @@ class PeerConnection:
         self.ip = ip
         self.port = port
 
-    def socket_connect(self):
-        try:
-            self.peer_socket.bind((self.ip, self.port))
-            self.peer_socket.listen()
-        except Exception as e:
-            print('Error binding socket', e)
-            sys.exit(0)
-
     def recieve_data(self, length):
         current_data = b''
 
@@ -48,11 +45,21 @@ class PeerConnection:
             except Exception as e:
                 new_data = None
             if not new_data:
+                print('socket closed?')
                 return None
             current_data += new_data
             length -= len(new_data)
 
         return current_data
+
+    def recieve_message(self):
+        length = int.from_bytes(self.recieve_data(LENGTH_BYTES))
+        id = int.from_bytes(self.recieve_data(ID_BYTES))
+        payload = self.recieve_data(length - ID_BYTES)
+        if(ID_BYTES + len(payload) != length):
+            #TODO handle invalid transmission (length != expected_len)
+            return
+        return message_decoder.parse_data({'length': length, 'id': id, 'payload': payload})
 
     def send_data(self, data):
         try:
@@ -60,10 +67,15 @@ class PeerConnection:
         except Exception as e:
             print('Failed to send all data', e)
             raise e
-
-    def acquire_connection(self):
-        return self.peer_socket.accept()
     
+class PeerDownload(PeerConnection):
+    def __init__(self, ip, port):
+        new_socket = socket.Socket(socket.AF_INET, socket.SOCK_STREAM)
+        super().__init__(new_socket, ip, port)
+
+    def socket_connect(self):
+        socket.connect((self.ip, self.port))
+
 if __name__ == '__main__':
     HOST, PORT = "localhost", 6889
     find = OwnConnection(1, HOST, PORT)
