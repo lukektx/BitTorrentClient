@@ -5,6 +5,7 @@ from utils import messages
 from utils import connections
 from utils import byte_decoder
 import peer
+import torrent_statistics
 import download_queue
 import piece_tracker
 import file_handler
@@ -34,11 +35,15 @@ class Torrent:
         if operation == 'seed':
             #check the pieces we have downloaded to be sure hashes match
             self.set_valid_pieces()
+        self.download_queue = download_queue.DownloadQueue()
+        self.statistics = torrent_statistics.TorrentStatistics()
         self.max_peers = max_peers
         self.peers = ['localhost', 6889]
         self.port = port
+        self.id = bytes(self.generate_id(), 'utf-8')
         self.block_size = 2 ** 14 #16kb (standard request size)
-        self.download_queue = download_queue.DownloadQueue()
+
+    # TODO Implement torrent statistics (upload/download/ratio/etc)
 
     def read_torrent(self, torrent_file):
         with open(torrent_file, 'rb') as f:
@@ -56,15 +61,15 @@ class Torrent:
         print('total pieces:', len(self.metadata['info']['pieces']) // HASH_SIZE)
 
     def info_hash(self):
-        return quote(hashlib.sha1(self.encoder.encode(self.metadata['info'])).digest(), safe='')
+        return hashlib.sha1(self.encoder.encode(self.metadata['info'])).digest()
     
     def generate_id(self):
         return f'-MM0001-{''.join([str(random.randint(0, 9)) for i in range(12)])}'
     
     def get_tracker_request(self):
         url = f'{self.metadata['announce']}?'
-        url += f'info_hash={self.info_hash()}&'
-        url += f'peer_id={quote(self.generate_id())}&'
+        url += f'info_hash={quote(self.info_hash(), safe='')}&'
+        url += f'peer_id={quote(self.id)}&'
         url += f'port={self.port}&'
         url += f'uploaded=0&'
         url += f'downloaded=0&'
@@ -82,11 +87,6 @@ class Torrent:
         # TODO request peer info from the tracker
         peers = []
         pass
-
-    def connect_peers(self):
-        for peer in self.peers:
-            peer.setup_peer()
-            peer.handshake()
             
     def download(self):
         self.set_download_order()
@@ -155,6 +155,8 @@ class Torrent:
     @staticmethod
     def start_listening(peer):
         print('started listening to', peer)
+        peer_info = peer.await_handshake()
+        print('got handshake info', peer_info)
         while peer.get_connection_status():
             peer.handle_message()
         print('closing peer thread', peer)

@@ -5,6 +5,8 @@ from . import message_decoder
 
 LENGTH_BYTES = 4
 ID_BYTES = 1
+PSTR = b'BitTorrent protocol'
+HANDSHAKE_LENGTH = 49 + len(PSTR)
 
 class OwnConnection:
 
@@ -52,10 +54,26 @@ class PeerConnection:
 
         return current_data
 
+    def recieve_handshake(self):
+        handshake = self.recieve_data(HANDSHAKE_LENGTH)
+        if not handshake:
+            print('invalid handshake recieved')
+            return None
+        pstrlen = int.from_bytes(handshake[0:1], 'big')
+        print('pstrlen', pstrlen)
+        if handshake[1:1+pstrlen] != PSTR:
+            print('invalid PSTR in handshake')
+            return None
+        flags = handshake[1+pstrlen:9+pstrlen]
+        info_hash = handshake[9+pstrlen:29+pstrlen]
+        peer_id = handshake[29+pstrlen:]
+        return {'flags':flags, 'info_hash':info_hash, 'peer_id':peer_id}
+
     def recieve_message(self):
         length = int.from_bytes(self.recieve_data(LENGTH_BYTES))
         id = int.from_bytes(self.recieve_data(ID_BYTES))
         payload = self.recieve_data(length - ID_BYTES)
+        payload_len = len(payload) if payload else 0
         if(ID_BYTES + len(payload) != length):
             #TODO handle invalid transmission (length != expected_len)
             return

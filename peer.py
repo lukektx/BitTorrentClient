@@ -25,6 +25,19 @@ class Peer:
     def get_connection_status(self):
         return self.status.connection_status
 
+    def await_handshake(self):
+        message = self.connection.recieve_handshake()
+        if not message:
+            self.status.set_connection_status(False)
+            return
+        if not self.torrent.info_hash() == message['info_hash']:
+            print('Handshake had different hash')
+            self.status.set_connection_status(False)
+            return
+        self.status.set_handshake_status(True)
+        return message
+
+
     def download_piece(self, index, offset, length):
         # TODO handshake if needed, send interested, get unchoked, then request
         data = b''
@@ -48,6 +61,18 @@ class Peer:
 
     def not_interested(self):
         self.status.not_interested()
+
+    def get_choke_status(self):
+        return self.status.get_choke_status()
+
+    def get_interested_status(self):
+        return self.status.get_interested_status()
+    
+    def get_handshake_status(self):
+        return self.status.get_handshake_status()
+    
+    def get_connection_status(self):
+        return self.status.get_connection_status()
 
     def update_bitfield_index(self, piece_index):
         self.bitfield.set_piece_status(piece_index)

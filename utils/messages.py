@@ -5,7 +5,7 @@ def message(id=0, payload=b''):
 
 def handshake(info_hash, peer_id):
     PSTR = b'BitTorrent protocol'
-    pstrlen = len(PSTR).to_bytes(4, 'big')
+    pstrlen = len(PSTR).to_bytes(1, 'big')
     reserved = b'\x00' * 8
     return pstrlen + PSTR + reserved + info_hash + peer_id
 

@@ -41,5 +41,31 @@ class MessageHandler:
         self.peer.port(message['port'])
 
     def handle_message(self, message):
-        print('message:', message)
-        self.HANDLER_ACTIONS[message['id']](message)
+        if not self.peer.get_handshake_status():
+            if message: # TODO check if message is a handshake
+                self.peer.handshake()
+            else:
+                self.peer.set_connection_status(False)
+        else:
+            self.upload_handler(message)
+
+    def download_handler(self, message):
+        if (
+            self.peer.status.choked() and
+            message['id'] != decoder.MessageType.UNCHOKE and
+            message['id'] != decoder.MessageType.BITFIELD
+        ):
+            pass
+            
+
+    def upload_handler(self, message):
+        if (
+            self.peer.status.choked() and
+            message['id'] != decoder.MessageType.UNCHOKE and
+            message['id'] != decoder.MessageType.BITFIELD
+        ):
+            self.peer.set_connection_status(False)
+            return
+        else:
+            print('message:', message)
+            self.HANDLER_ACTIONS[message['id']](message)

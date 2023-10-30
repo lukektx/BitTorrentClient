@@ -3,7 +3,7 @@ import threading
 class FileHandler:
 
     def __init__(self, file_path):
-        self.file = open(file_path, 'rb')
+        self.file = open(file_path, 'ab+')
         self.lock = threading.Lock()
 
     def read(self, offset, length):
