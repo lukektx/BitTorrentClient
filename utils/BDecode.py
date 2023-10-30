@@ -1,9 +1,9 @@
-from . import ByteDecoder
+from . import byte_decoder
 
 class BDecode:
 
     def __init__(self):
-        self.byte_decoder = ByteDecoder.ByteDecoder()
+        self.byte_decoder = byte_decoder.ByteDecoder()
         self.int_match = ord('i')
         self.list_match = ord('l')
         self.dict_match = ord('d')

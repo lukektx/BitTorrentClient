@@ -1,7 +1,7 @@
 import socket
 import sys
 
-from utils import message_decoder
+from . import message_decoder
 
 LENGTH_BYTES = 4
 ID_BYTES = 1
@@ -59,7 +59,7 @@ class PeerConnection:
         if(ID_BYTES + len(payload) != length):
             #TODO handle invalid transmission (length != expected_len)
             return
-        return message_decoder.parse_data({'length': length, 'id': id, 'payload': payload})
+        return message_decoder.extract_payload({'length': length, 'id': id, 'payload': payload})
 
     def send_data(self, data):
         try:

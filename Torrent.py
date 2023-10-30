@@ -22,17 +22,26 @@ class Torrent:
         self.encoder = Encoder.BEncode()
         self.decoder = Decoder.BDecode()
         self.torrent_file = torrent_file
-        self.metadata = self.decoder.decode(self.torrent_file.read())
-        if operation == 'download':
-            self.pieces = piece_tracker.PieceTracker(
-                self.metadata['pieces'], 
-                self.metadata['pieces length'], 
-                len(self.metadata['pieces']) / HASH_SIZE
-            )
-        self.peers = []
+        self.metadata = self.read_torrent(torrent_file)
+        self.pieces = piece_tracker.PieceTracker(
+            self.metadata['pieces'], 
+            self.metadata['pieces length'], 
+            len(self.metadata['pieces']) / HASH_SIZE
+        )
+        if operation == 'seed':
+            #check the pieces we have downloaded to be sure hashes match
+            self.check_pieces()
+        self.max_peers = max_peers
+        self.peers = ['localhost', 6889]
         self.port = port
         self.block_size = 2 ** 14 #16kb (standard request size)
         self.download_queue = download_queue.DownloadQueue()
+
+    def read_torrent(self, torrent_file):
+        with open(torrent_file, 'rb') as f:
+            meta_info = f.read()
+            return self.decoder.decode(meta_info)
+        
 
     def info_hash(self):
         return quote(hashlib.sha1(self.encoder.encode(self.metadata['info'])).digest(), safe='')
@@ -70,12 +79,12 @@ class Torrent:
     def download(self):
         self.set_download_order()
         for peer in self.peers:
-            threading.Thread(target=self.download_piece, args=(peer,))
+            threading.Thread(target=self.download_piece, args=(peer,)).start()
 
     def set_download_order(self):
         self.select_download_algo()
 
-    def select_download_algo(self, algorithm):
+    def select_download_algo(self):
         if self.pieces.num_downloaded_pieces() < 4:
             self.random_first()
         elif self.pieces.num_downloaded_pieces() >= 4:
@@ -113,13 +122,11 @@ class Torrent:
 
 
     def add_piece(self, index, begin, block):
-        self.pieces.set_piece(index)
-
+        self.pieces.set_piece(index, begin, block)
 
     def begin_seeding(self):
-        
         HOST, PORT = '', self.port
-        self.peer_finder = connections.OwnConnection(1, HOST, PORT)
+        self.peer_finder = connections.OwnConnection(self.max_peers, HOST, PORT)
         self.peer_finder.socket_connect()
         seeding = True
         while seeding:
@@ -129,11 +136,16 @@ class Torrent:
                 ip, port = addr
                 new_peer = peer.Peer(self, conn, ip, port)
                 self.peers.append(new_peer)
-                threading.Thread(target=self.start_listening, args=(peer,))
+                print('starting thread')
+                threading.Thread(target=self.start_listening, args=(new_peer,)).start()
+
     
+    @staticmethod
     def start_listening(peer):
-        while peer.connection and peer.status.get_interested_status():
+        print('started listening to', peer)
+        while peer.get_connection_status():
             peer.handle_message()
+        print('closing peer thread', peer)
         peer.connection.peer_socket.close()
 
     

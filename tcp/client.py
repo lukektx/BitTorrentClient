@@ -1,5 +1,6 @@
 import socket
 import time
+import messages
 
 HOST, PORT = "localhost", 6889
 
@@ -8,7 +9,7 @@ def message(id=0, payload=b''):
         return int(0).to_bytes(4, 'big')
     return (len(str(id)) + len(payload)).to_bytes(4, 'big') + id.to_bytes(1, 'big') + payload
 
-data = b'\x69' * 800
+data = messages.request(0, 0, 2 ** 14)
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     # Connect to server and send data
     sock.connect((HOST, PORT))

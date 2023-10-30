@@ -27,6 +27,9 @@ class PeerStatus:
     def update_time(self):
         self.last_message = datetime.now()
 
+    def get_handshake_status(self):
+        return self.handshake_status
+
     def get_choke_status(self):
         return self.choke_status
     
@@ -35,6 +38,3 @@ class PeerStatus:
     
     def get_time(self):
         return self.last_message
-    
-    def get_handshake_status(self):
-        return self.handshake_status

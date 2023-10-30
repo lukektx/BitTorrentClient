@@ -1,5 +1,5 @@
 from utils import BDecode as Decode
-from utils import ByteDecoder
+from utils import byte_decoder
 
 class TrackerResponse:
 

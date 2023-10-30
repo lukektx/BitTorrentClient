@@ -1,11 +1,23 @@
-import message_decoder as decoder
-import messages
+from . import message_decoder as decoder
 
 class MessageHandler:
     def __init__ (self, peer):
         self.peer = peer
+        self.HANDLER_ACTIONS = {
+            decoder.MessageType.KEEP_ALIVE: self.keep_alive,
+            decoder.MessageType.CHOKE: self.choke,
+            decoder.MessageType.UNCHOKE: self.unchoke,
+            decoder.MessageType.INTERESTED: self.interested,
+            decoder.MessageType.NOT_INTERESTED: self.not_interested,
+            decoder.MessageType.HAVE: self.have,
+            decoder.MessageType.BITFIELD: self.bitfield,
+            decoder.MessageType.REQUEST: self.request,
+            decoder.MessageType.PIECE: self.piece,
+            decoder.MessageType.CANCEL: self.cancel,
+            decoder.MessageType.PORT: self.port,
+        }
 
-    def keep_alive(self, message):
+    def keep_alive(self):
         self.peer.update_time()
     def choke(self):
         self.peer.choke()
@@ -28,19 +40,6 @@ class MessageHandler:
     def port(self, message):
         self.peer.port(message['port'])
 
-    HANDLER_ACTIONS = {
-        decoder.MessageType.KEEP_ALIVE: keep_alive,
-        decoder.MessageType.CHOKE: choke, 
-        decoder.MessageType.UNCHOKE: unchoke,
-        decoder.MessageType.INTERESTED: interested,
-        decoder.MessageType.NOT_INTERESTED: not_interested,
-        decoder.MessageType.HAVE: have,
-        decoder.MessageType.BITFIELD: bitfield,
-        decoder.MessageType.REQUEST: request,
-        decoder.MessageType.PIECE: piece,
-        decoder.MessageType.CANCEL: cancel,
-        decoder.MessageType.PORT: port
-    }
-
     def handle_message(self, message):
+        print('message:', message)
         self.HANDLER_ACTIONS[message['id']](message)

@@ -1,4 +1,4 @@
-from tcp import connections
+from utils import connections
 from utils import message_handler
 from utils import messages
 import peer_status
@@ -17,7 +17,13 @@ class Peer:
         self.torrent = torrent
         self.bitfield = b''
 
+    def __str__(self):
+        return f'Peer connection = {self.connection.ip}:{self.connection.port}'
+
     # TODO check if peer times out
+
+    def get_connection_status(self):
+        return self.status.connection_status
 
     def download_piece(self, index, offset, length):
         # TODO handshake if needed, send interested, get unchoked, then request
