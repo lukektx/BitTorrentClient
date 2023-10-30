@@ -3,10 +3,11 @@ import threading
 
 TORRENT_FILE = 'torrents//ubuntu-23.10.1-desktop-amd64.iso.torrent'
 OUT_PATH = 'out'
+IN_PATH = 'C://Users//lukek//Downloads'
 
 def seed():
     print('seed')
-    client.Client(TORRENT_FILE, OUT_PATH, operation='seed').loop()
+    client.Client(TORRENT_FILE, IN_PATH, operation='seed').loop()
 
 def download():
     print('download')

@@ -3,9 +3,11 @@ import utils.BDecode as Decoder
 from urllib.parse import quote
 from utils import messages
 from utils import connections
+from utils import byte_decoder
 import peer
 import download_queue
 import piece_tracker
+import file_handler
 import TrackerResponse
 import hashlib
 import random
@@ -18,19 +20,20 @@ RANDOM_DOWNLOADS = 4
 
 class Torrent:
 
-    def __init__(self, torrent_file, out_path, port, max_peers, operation):
+    def __init__(self, torrent_file, path, port, max_peers, operation):
         self.encoder = Encoder.BEncode()
         self.decoder = Decoder.BDecode()
         self.torrent_file = torrent_file
         self.metadata = self.read_torrent(torrent_file)
         self.pieces = piece_tracker.PieceTracker(
-            self.metadata['pieces'], 
-            self.metadata['pieces length'], 
-            len(self.metadata['pieces']) / HASH_SIZE
+            file_handler.FileHandler(f'{path}//{self.metadata['info']['name']}'),
+            self.metadata['info']['pieces'],
+            self.metadata['info']['piece length'], 
+            len(self.metadata['info']['pieces']) // HASH_SIZE
         )
         if operation == 'seed':
             #check the pieces we have downloaded to be sure hashes match
-            self.check_pieces()
+            self.set_valid_pieces()
         self.max_peers = max_peers
         self.peers = ['localhost', 6889]
         self.port = port
@@ -39,9 +42,18 @@ class Torrent:
 
     def read_torrent(self, torrent_file):
         with open(torrent_file, 'rb') as f:
-            meta_info = f.read()
-            return self.decoder.decode(meta_info)
+            metadata = f.read()
+            decoded = self.decoder.decode(metadata)
+            return decoded
         
+    def set_valid_pieces(self):
+        print('confirming piece hashes')
+        for index in range(len(self.metadata['info']['pieces']) // HASH_SIZE):
+            if(self.pieces.check_hash(index, disk=True)):
+                self.pieces.set_bitfield_status(index)
+
+        print('valid pieces:', self.pieces.num_downloaded_pieces())
+        print('total pieces:', len(self.metadata['info']['pieces']) // HASH_SIZE)
 
     def info_hash(self):
         return quote(hashlib.sha1(self.encoder.encode(self.metadata['info'])).digest(), safe='')
@@ -61,10 +73,10 @@ class Torrent:
         return url
     
     def get_block(self, index, begin, length):
-        return self.pieces.get_piece(index, begin, length)
+        return self.pieces.get_block(index, begin, length)
         
     def add_block(self, index, begin, block):
-        return self.pieces.set_piece(index, begin, block)
+        return self.pieces.set_block(index, begin, block)
 
     def find_peers(self):
         # TODO request peer info from the tracker
@@ -122,7 +134,7 @@ class Torrent:
 
 
     def add_piece(self, index, begin, block):
-        self.pieces.set_piece(index, begin, block)
+        self.pieces.set_block(index, begin, block)
 
     def begin_seeding(self):
         HOST, PORT = '', self.port

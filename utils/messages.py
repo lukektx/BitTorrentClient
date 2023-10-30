@@ -35,7 +35,7 @@ def request(index, offset, length):
     return message(6, payload)
 
 def piece(index, offset, block):
-    payload = index.to_bytes(4, 'big') + offset.to_bytes(4, 'big') + block.to_bytes(4, 'big')
+    payload = index.to_bytes(4, 'big') + offset.to_bytes(4, 'big') + block
     return message(7, payload)
 
 def cancel(index, offset, length):

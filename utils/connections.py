@@ -63,7 +63,7 @@ class PeerConnection:
 
     def send_data(self, data):
         try:
-            self.peer_socket.sendll(data)
+            self.peer_socket.sendall(data)
         except Exception as e:
             print('Failed to send all data', e)
             raise e
