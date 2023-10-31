@@ -25,6 +25,9 @@ class Peer:
     def get_connection_status(self):
         return self.status.connection_status
 
+    def send_handshake(self):
+        self.connection.send_data(messages.handshake(self.torrent.info_hash(), self.torrent.id))
+
     def await_handshake(self):
         message = self.connection.recieve_handshake()
         if not message:
@@ -45,6 +48,7 @@ class Peer:
 
     def handle_message(self):
         message = self.connection.recieve_message()
+        print('recieved message', message)
         self.handler.handle_message(message)
 
     def update_time(self):

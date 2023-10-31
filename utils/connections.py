@@ -71,11 +71,15 @@ class PeerConnection:
 
     def recieve_message(self):
         length = int.from_bytes(self.recieve_data(LENGTH_BYTES))
-        id = int.from_bytes(self.recieve_data(ID_BYTES))
+        print('got length', length)
+        id = int.from_bytes(self.recieve_data(min(length, 1)))
+        print('got id', id)
         payload = self.recieve_data(length - ID_BYTES)
-        payload_len = len(payload) if payload else 0
-        if(ID_BYTES + len(payload) != length):
+        print('got payload', payload)
+        check_len = (len(payload)if payload else 0) + (len(id) if id else 0)
+        if(check_len != length):
             #TODO handle invalid transmission (length != expected_len)
+            print('invalid message (length != data recieved)')
             return
         return message_decoder.extract_payload({'length': length, 'id': id, 'payload': payload})
 

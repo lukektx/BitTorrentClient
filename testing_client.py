@@ -69,11 +69,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         message_info = input('what message do you want to send?\n')
         data = get_message(message_info)
         sock.sendall(data)
-        time.sleep(5)
-        sock.sendall(data)
+        print(f'sent: {data}')
 
         # Receive data from the server and shut down
         received = sock.recv(len(data))
-
-        print(f"Sent:     {data}")
         print(f"Received: {received}")

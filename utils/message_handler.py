@@ -60,10 +60,11 @@ class MessageHandler:
 
     def upload_handler(self, message):
         if (
-            self.peer.status.choked() and
+            self.peer.status.get_choke_status() and
             message['id'] != decoder.MessageType.UNCHOKE and
             message['id'] != decoder.MessageType.BITFIELD
         ):
+            print('recieved invalid message (peer still choked)')
             self.peer.set_connection_status(False)
             return
         else:
