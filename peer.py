@@ -10,7 +10,6 @@ class Peer:
             self.connection = connections.PeerConnection(connection, ip, port)
         else:
             self.connection = connections.PeerDownload(ip, port)
-            self.connection.socket_connect()
 
         self.status = peer_status.PeerStatus()
         self.handler = message_handler.MessageHandler(self)
@@ -22,6 +21,9 @@ class Peer:
 
     # TODO check if peer times out
 
+    def connect(self):
+        self.status.set_connection_status(self.connection.connect())
+
     def get_connection_status(self):
         return self.status.connection_status
     
@@ -30,6 +32,9 @@ class Peer:
 
     def send_handshake(self):
         self.connection.send_data(messages.handshake(self.torrent.info_hash(), self.torrent.id))
+    
+    def send_bitfield(self):
+        self.connection.send_data(messages.bitfield(self.get_bitfield()))
 
     def await_handshake(self):
         message = self.connection.recieve_handshake()

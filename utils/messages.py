@@ -28,7 +28,7 @@ def have(piece_index):
     return message(4, piece_index.to_bytes(4, 'big'))
 
 def bitfield(bitfield):
-    return message(5, bitfield.to_bytes(4, 'big'))
+    return message(5, bitfield)
 
 def request(index, offset, length):
     payload = index.to_bytes(4, 'big') + offset.to_bytes(4, 'big') + length.to_bytes(4, 'big')

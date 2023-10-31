@@ -3,7 +3,6 @@ import utils.BDecode as Decoder
 from urllib.parse import quote
 from utils import messages
 from utils import connections
-from utils import byte_decoder
 import peer
 import torrent_statistics
 import download_queue
@@ -14,7 +13,7 @@ import hashlib
 import random
 import requests
 import threading
-from enum import Enum
+import time
 
 HASH_SIZE = 20
 RANDOM_DOWNLOADS = 4
@@ -38,7 +37,7 @@ class Torrent:
         self.download_queue = download_queue.DownloadQueue()
         self.statistics = torrent_statistics.TorrentStatistics()
         self.max_peers = max_peers
-        self.peers = ['localhost', 6889]
+        self.peers = []
         self.port = port
         self.id = bytes(self.generate_id(), 'utf-8')
         self.block_size = 2 ** 14 #16kb (standard request size)
@@ -76,7 +75,7 @@ class Torrent:
         url += f'left={self.metadata['info']['length']}&'
         url += f'compact=1'
         return url
-    
+
     def get_block(self, index, begin, length):
         return self.pieces.get_block(index, begin, length)
         
@@ -85,9 +84,16 @@ class Torrent:
 
     def find_peers(self):
         # TODO request peer info from the tracker
-        peers = []
-        pass
+        TEST_PEER_ADDRESS = ['localhost', 6889]
+        self.peers.append(peer.Peer(self, None, TEST_PEER_ADDRESS[0], TEST_PEER_ADDRESS[1]))
             
+    def connect_peers(self):
+        for peer in self.peers:
+            peer.connect()
+            peer.send_handshake()
+            response = peer.await_handshake()
+            print(f'recieved handshake {response}')
+    
     def download(self):
         self.set_download_order()
         for peer in self.peers:
@@ -123,15 +129,19 @@ class Torrent:
 
     def download_piece(self, peer):
         piece = self.download_queue.get_needed_piece()
-        finished = False
-        try:
-            finished = peer.download_piece(piece)
-        except ValueError:
-            print('Failed piece download, hash doesn\'t match')
-            self.pieces.reset_piece(piece)
-        if finished:
-            self.download_queue.remove_piece(piece)
-
+        while piece:
+            if sent_requests < 25:
+                try:
+                    finished = peer.download_piece(piece)
+                except ValueError:
+                    print('Failed piece download, hash doesn\'t match')
+                    self.pieces.reset_piece(piece)
+                if finished:
+                    self.download_queue.remove_piece(piece)
+            else:
+                time.sleep(1)
+        else:
+            print('no pieces needed from peer')
 
     def add_piece(self, index, begin, block):
         self.pieces.set_block(index, begin, block)
@@ -156,8 +166,9 @@ class Torrent:
     def start_listening(peer):
         print('started listening to', peer)
         peer_info = peer.await_handshake()
-        peer.send_bitfield()
         peer.send_handshake()
+        peer.send_bitfield()
+
         print('got handshake info', peer_info)
         while peer.get_connection_status():
             peer.handle_message()

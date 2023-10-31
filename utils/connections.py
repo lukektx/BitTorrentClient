@@ -97,11 +97,16 @@ class PeerConnection:
     
 class PeerDownload(PeerConnection):
     def __init__(self, ip, port):
-        new_socket = socket.Socket(socket.AF_INET, socket.SOCK_STREAM)
+        new_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         super().__init__(new_socket, ip, port)
 
-    def socket_connect(self):
-        socket.connect((self.ip, self.port))
+    def connect(self):
+        try:
+            self.peer_socket.connect((self.ip, self.port))
+        except ConnectionError as e:
+            print('failed to connect to peer')
+            return False
+        return True
 
 if __name__ == '__main__':
     HOST, PORT = "localhost", 6889
