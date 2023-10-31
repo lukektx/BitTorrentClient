@@ -65,12 +65,22 @@ my_torrent = torrent.Torrent(TORRENT_FILE, OUT_PATH, 19848, 50, 'download')
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     # Connect to server and send data
     sock.connect((HOST, PORT))
+    sock.sendall(get_message('10'))
     while True:
         message_info = input('what message do you want to send?\n')
         data = get_message(message_info)
         sock.sendall(data)
         print(f'sent: {data}')
 
+        args = message_info.split(' ')
+        args = [int(args[i]) for i in range(len(args))]
+
         # Receive data from the server and shut down
-        received = sock.recv(len(data))
+        recived = b''
+        if args[0] == 6:
+            received = sock.recv(9 + args[3])
+        elif args[0] == -1:
+            pass
+        else: 
+            received = sock.recv(len(data))
         print(f"Received: {received}")

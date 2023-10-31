@@ -17,15 +17,15 @@ class MessageHandler:
             decoder.MessageType.PORT: self.port,
         }
 
-    def keep_alive(self):
+    def keep_alive(self, message):
         self.peer.update_time()
-    def choke(self):
+    def choke(self, message):
         self.peer.choke()
-    def unchoke(self):
+    def unchoke(self, message):
         self.peer.unchoke()
-    def interested(self):
+    def interested(self, message):
         self.peer.interested()
-    def not_interested(self):
+    def not_interested(self, message):
         self.peer.not_interested()
     def have(self, message):
         self.peer.update_bitfield_index(message['piece_index'])
@@ -61,7 +61,7 @@ class MessageHandler:
     def upload_handler(self, message):
         if (
             self.peer.status.get_choke_status() and
-            message['id'] != decoder.MessageType.UNCHOKE and
+            message['id'] != decoder.MessageType.INTERESTED and
             message['id'] != decoder.MessageType.BITFIELD
         ):
             print('recieved invalid message (peer still choked)')

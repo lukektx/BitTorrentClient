@@ -24,6 +24,9 @@ class Peer:
 
     def get_connection_status(self):
         return self.status.connection_status
+    
+    def set_connection_status(self, status):
+        return self.status.set_connection_status(status)
 
     def send_handshake(self):
         self.connection.send_data(messages.handshake(self.torrent.info_hash(), self.torrent.id))
@@ -34,12 +37,11 @@ class Peer:
             self.status.set_connection_status(False)
             return
         if not self.torrent.info_hash() == message['info_hash']:
-            print('Handshake had different hash')
+            print('Handshake had different hash, closing connection')
             self.status.set_connection_status(False)
             return
         self.status.set_handshake_status(True)
         return message
-
 
     def download_piece(self, index, offset, length):
         # TODO handshake if needed, send interested, get unchoked, then request
@@ -48,6 +50,11 @@ class Peer:
 
     def handle_message(self):
         message = self.connection.recieve_message()
+        #error recieveing message or connection closed
+        if message == None:
+            print('connection closed or message handle error')
+            self.status.set_connection_status(False)
+            return
         print('recieved message', message)
         self.handler.handle_message(message)
 
@@ -62,6 +69,8 @@ class Peer:
 
     def interested(self):
         self.status.interested()
+        self.connection.send_data(messages.unchoke())
+        self.status.unchoke()
 
     def not_interested(self):
         self.status.not_interested()

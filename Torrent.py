@@ -156,6 +156,7 @@ class Torrent:
     def start_listening(peer):
         print('started listening to', peer)
         peer_info = peer.await_handshake()
+        peer.send_bitfield()
         peer.send_handshake()
         print('got handshake info', peer_info)
         while peer.get_connection_status():

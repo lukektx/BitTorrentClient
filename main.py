@@ -15,7 +15,10 @@ def download():
    
 if __name__ == '__main__':
     print('test')
-    seed = threading.Thread(target=seed)
-    seed.start()
-    seed.join()
-    #threading.Thread(target=download).start()
+    # seeding = threading.Thread(target=seed)
+    # seeding.start()
+    # seeding.join()
+
+    downloading = threading.Thread(target=download)
+    downloading.start()
+    downloading.join()

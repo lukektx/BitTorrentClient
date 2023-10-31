@@ -47,7 +47,6 @@ class PeerConnection:
             except Exception as e:
                 new_data = None
             if not new_data:
-                print('socket closed?')
                 return None
             current_data += new_data
             length -= len(new_data)
@@ -70,17 +69,23 @@ class PeerConnection:
         return {'flags':flags, 'info_hash':info_hash, 'peer_id':peer_id}
 
     def recieve_message(self):
-        length = int.from_bytes(self.recieve_data(LENGTH_BYTES))
-        print('got length', length)
-        id = int.from_bytes(self.recieve_data(min(length, 1)))
-        print('got id', id)
+        length = self.recieve_data(LENGTH_BYTES)
+        # Connection closed or error with message
+        if length == None:
+            return None
+        length = int.from_bytes(length, 'big')
+        id = self.recieve_data(min(length, 1))
+        if id == None:
+            return None
+        id = int.from_bytes(id) if id else -1
         payload = self.recieve_data(length - ID_BYTES)
-        print('got payload', payload)
-        check_len = (len(payload)if payload else 0) + (len(id) if id else 0)
+        if payload == None:
+            return None
+        check_len = (len(payload) if payload else 0) + (1 if id != -1 else 0)
         if(check_len != length):
             #TODO handle invalid transmission (length != expected_len)
             print('invalid message (length != data recieved)')
-            return
+            return None
         return message_decoder.extract_payload({'length': length, 'id': id, 'payload': payload})
 
     def send_data(self, data):
