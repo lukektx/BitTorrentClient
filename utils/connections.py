@@ -89,6 +89,7 @@ class PeerConnection:
         return message_decoder.extract_payload({'length': length, 'id': id, 'payload': payload})
 
     def send_data(self, data):
+        print('sending data', data)
         try:
             self.peer_socket.sendall(data)
         except Exception as e:

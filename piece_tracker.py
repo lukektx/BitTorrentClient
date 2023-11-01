@@ -104,22 +104,21 @@ class PieceTracker:
         return hashlib.sha1(data).digest() == self.piece_hashes[index * HASH_SIZE:(index + 1) * HASH_SIZE]
 
     def get_bitfield(self):
-        return self.bitfield
+        return self.bitfield.get_bitfield()
     
     def num_downloaded_pieces(self):
-        print('bitfield length', self.bitfield.length())
         return sum([self.get_bitfield_status(index) for index in range(self.bitfield.length())])
 
     def remaining_pieces(self):
         out = []
         for index in range(self.bitfield.length()):
-                if self.get_bitfield_status(index):
+                if not self.get_bitfield_status(index):
                     out.append(index)
         return out
 
 class Bitfield:
     def __init__(self, pieces):
-        self.bytes = bytearray(pieces)
+        self.bytes = bytearray(math.ceil(pieces / 8))
 
     def get_piece_status(self, index):
         return self.bytes[index // 8] >> (7 - (index % 8)) & 1
@@ -128,7 +127,10 @@ class Bitfield:
         self.bytes[index // 8] |= (1 << (7 - (index % 8)))
 
     def length(self):
-        return len(self.bytes)
+        return len(self.bytes) * 8
+    
+    def get_bitfield(self):
+        return bytes(self.bytes)
 
 if __name__ == '__main__':
     test = PieceTracker(b'\xff' * 100, 100)

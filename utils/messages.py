@@ -28,6 +28,7 @@ def have(piece_index):
     return message(4, piece_index.to_bytes(4, 'big'))
 
 def bitfield(bitfield):
+    print('sending bitfield length', len(bitfield))
     return message(5, bitfield)
 
 def request(index, offset, length):

@@ -34,7 +34,7 @@ class Peer:
         self.connection.send_data(messages.handshake(self.torrent.info_hash(), self.torrent.id))
     
     def send_bitfield(self):
-        self.connection.send_data(messages.bitfield(self.get_bitfield()))
+        self.connection.send_data(messages.bitfield(self.torrent.get_bitfield()))
 
     def await_handshake(self):
         message = self.connection.recieve_handshake()

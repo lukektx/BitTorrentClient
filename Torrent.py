@@ -111,11 +111,15 @@ class Torrent:
 
     def random_first(self):
         needed = self.pieces.remaining_pieces()
+        print('need', needed)
         chosen = []
-        for i in range(RANDOM_DOWNLOADS):
+        for i in range(min(RANDOM_DOWNLOADS, len(needed))):
             chosen.append(needed[random.randint(0, len(needed) - 1)])
         self.download_queue.enable_strict_priority()
         self.download_queue.set_queue(chosen)
+
+    def get_bitfield(self):
+        return self.pieces.get_bitfield()
 
     def get_rarities(self):
         bitfields = [peer.get_bitfield() for peer in self.peers]
@@ -129,6 +133,7 @@ class Torrent:
 
     def download_piece(self, peer):
         piece = self.download_queue.get_needed_piece()
+        print('need piece', piece)
         while piece:
             if sent_requests < 25:
                 try:
