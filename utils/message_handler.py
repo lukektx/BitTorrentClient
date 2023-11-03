@@ -50,12 +50,18 @@ class MessageHandler:
             self.upload_handler(message)
 
     def download_handler(self, message):
+        if not self.peer.status.get_handshake_status():
+            print('recieved message before handshake')
+            return
         if (
             self.peer.status.choked() and
             message['id'] != decoder.MessageType.UNCHOKE and
             message['id'] != decoder.MessageType.BITFIELD
         ):
-            pass
+            return
+        else:
+            print('message:', message)
+            return self.HANDLER_ACTIONS[message['id']](message)
             
 
     def upload_handler(self, message):
@@ -69,4 +75,4 @@ class MessageHandler:
             return
         else:
             print('message:', message)
-            self.HANDLER_ACTIONS[message['id']](message)
+            return self.HANDLER_ACTIONS[message['id']](message)

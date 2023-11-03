@@ -32,6 +32,7 @@ class Piece:
 
     def add_tracked_block(self, offset, length):
         self.current_blocks.append(Block(offset, length))
+        self.current_blocks.sort(key=lambda block: block.get_start())
 
     def add_block(self, block, offset):
         if not self.data:
@@ -43,6 +44,10 @@ class Piece:
             return True
         return False
     
+    def get_needed_block(self):
+        current_index = 0
+        #while 
+
     def get_length(self):
         return len(self.data)
     

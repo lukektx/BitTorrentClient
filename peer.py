@@ -50,7 +50,16 @@ class Peer:
 
     def download_piece(self, index, offset, length):
         # TODO handshake if needed, send interested, get unchoked, then request
+        if not self.status.get_choke_status():
+            self.connection.send_data(messages.interested())
+            self.await_unchoked()
+        self.connection.send_data(messages.request(index, offset, length))
         data = b''
+        response = self.connection.recieve_message()
+        if not response['id'] == 7:
+            print('recieved response other than piece trying to download')
+            return
+        data = response['block']
         self.torrent.add_piece(index, offset, data)
 
     def handle_message(self):

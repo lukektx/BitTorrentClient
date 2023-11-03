@@ -134,6 +134,11 @@ class Torrent:
     def download_piece(self, peer):
         piece = self.download_queue.get_needed_piece()
         print('need piece', piece)
+        sent_requests = 0
+        if not piece:
+            print('no pieces needed from peer')
+            return
+
         while piece:
             if sent_requests < 25:
                 try:
@@ -142,11 +147,10 @@ class Torrent:
                     print('Failed piece download, hash doesn\'t match')
                     self.pieces.reset_piece(piece)
                 if finished:
+                    piece = self.download_queue.get_needed_piece()
                     self.download_queue.remove_piece(piece)
             else:
                 time.sleep(1)
-        else:
-            print('no pieces needed from peer')
 
     def add_piece(self, index, begin, block):
         self.pieces.set_block(index, begin, block)
